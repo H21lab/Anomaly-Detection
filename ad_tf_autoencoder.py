@@ -2,7 +2,7 @@
 
 #
 # Anomaly detection using tensorflow and tshark
-# Supervised learning using neural network classifier
+# Unsupervised learning using autoencoder
 #
 # Copyright 2017, H21 lab, Martin Kacer
 # All the content and resources have been provided in the hope that it will be useful.
@@ -33,6 +33,8 @@ import operator
 import subprocess
 import os
 import hashlib
+from datetime import datetime
+import numpy as np
 
 import tensorflow as tf
 
@@ -43,7 +45,56 @@ CONTINUOUS_COLUMNS = []
 
 FLAGS = None
 
-def build_estimator(model_dir, model_type):
+
+# Parameters
+learning_rate = 0.001
+training_epochs = 10
+batch_size = 256
+display_step = 1
+
+# Network Parameters
+n_hidden_1 = 15 # 1st layer num features
+#n_hidden_2 = 15 # 2nd layer num features
+n_input = 1000
+data_dir = '.'
+
+weights = {
+    'encoder_h1': tf.Variable(tf.random_normal([n_input, n_hidden_1])),
+    #'encoder_h2': tf.Variable(tf.random_normal([n_hidden_1, n_hidden_2])),
+    'decoder_h1': tf.Variable(tf.random_normal([n_hidden_1, n_input])),
+    #'decoder_h2': tf.Variable(tf.random_normal([n_hidden_1, n_input])),
+}
+biases = {
+    'encoder_b1': tf.Variable(tf.random_normal([n_hidden_1])),
+    #'encoder_b2': tf.Variable(tf.random_normal([n_hidden_2])),
+    'decoder_b1': tf.Variable(tf.random_normal([n_input])),
+    #'decoder_b2': tf.Variable(tf.random_normal([n_input])),
+}
+
+
+# Building the encoder
+def encoder(x):
+    # Encoder Hidden layer with sigmoid activation #1
+    layer_1 = tf.nn.tanh(tf.add(tf.matmul(x, weights['encoder_h1']),
+                                   biases['encoder_b1']))
+    # Decoder Hidden layer with sigmoid activation #2
+    #layer_2 = tf.nn.tanh(tf.add(tf.matmul(layer_1, weights['encoder_h2']),
+                                   #biases['encoder_b2']))
+    return layer_1
+
+
+# Building the decoder
+def decoder(x):
+    # Encoder Hidden layer with sigmoid activation #1
+    layer_1 = tf.nn.tanh(tf.add(tf.matmul(x, weights['decoder_h1']),
+                                   biases['decoder_b1']))
+    # Decoder Hidden layer with sigmoid activation #2
+    #layer_2 = tf.nn.tanh(tf.add(tf.matmul(layer_1, weights['decoder_h2']),
+                                  # biases['decoder_b2']))
+    return layer_1
+
+
+'''def build_estimator(model_dir, model_type):
     """Build an estimator."""
     
     # Wide columns and deep columns.
@@ -74,8 +125,9 @@ def build_estimator(model_dir, model_type):
             dnn_hidden_units=[100, 50])
     
     return m
+'''
 
-
+'''
 def input_fn(df):
     """Input builder function."""
     # Creates a dictionary mapping from each continuous feature column name (k) to
@@ -97,6 +149,7 @@ def input_fn(df):
 
     # Returns the feature columns and the label.
     return feature_cols, label
+'''
 
 def df_to_pcap(j, df_predict, file):
     linux_cooked_header = df_predict.at[j, 'linux_cooked_header'];
@@ -202,7 +255,7 @@ def main(_):
     df = pd.DataFrame()
     
     ln = readJsonEK(df, FLAGS.normal_tshark_ek_x_json, 0)
-    readJsonEK(df, FLAGS.anomaly_tshark_ek_x_json, 1, ln)
+    #readJsonEK(df, FLAGS.anomaly_tshark_ek_x_json, 1, ln)
     
     df = df.sample(frac=1).reset_index(drop=True)
     
@@ -215,15 +268,70 @@ def main(_):
     print("model directory = %s" % model_dir)
 
     print ">>>>>>>>>>>>>>>" + str(COLUMNS)
-    m = build_estimator(model_dir, 'wide_n_deep')
-    m.fit(input_fn=lambda: input_fn(df), steps=200)
+    #m = build_estimator(model_dir, 'wide_n_deep')
+    #
+    #m.fit(input_fn=lambda: input_fn(df), steps=200)
+    #
+    #results = m.evaluate(input_fn=lambda: input_fn(df), steps=1)
+    #for key in sorted(results):
+    #    print("%s: %s" % (key, results[key]))
     
-    results = m.evaluate(input_fn=lambda: input_fn(df), steps=1)
-    for key in sorted(results):
-        print("%s: %s" % (key, results[key]))
+    # Construct Autoencoder model
+    
+    #X = tf.placeholder("float", [None, input_fn(df)])
+    
+    print "!!!!!!!!!!!!!!!!!!!!!"
+    print df.iloc[:,2]
+    print "!!!!!!!!!!!!!!!!!!!!!"
+    train_x = df.iloc[:,2].values
+    
+    print train_x.shape[1]
+    n_input = train_x.shape[1]
+    X = tf.placeholder("float", [None, n_input])
+    
+    encoder_op = encoder(X)
+    decoder_op = decoder(encoder_op)
+    
+    # Prediction
+    y_pred = decoder_op
+    # Targets (Labels) are the input data.
+    y_true = X
+    
+    # Define batch mse
+    batch_mse = tf.reduce_mean(tf.pow(y_true - y_pred, 2), 1)
+    
+    # Define loss and optimizer, minimize the squared error
+    cost = tf.reduce_mean(tf.pow(y_true - y_pred, 2))
+    optimizer = tf.train.RMSPropOptimizer(learning_rate).minimize(cost)
+    
+    # Initializing the variables
+    init = tf.global_variables_initializer()
+    
+    with tf.Session() as sess:
+        now = datetime.now()
+        sess.run(init)
+        total_batch = int(train_x.shape[0]/batch_size)
+        # Training cycle
+        for epoch in range(training_epochs):
+            # Loop over all batches
+            for i in range(total_batch):
+                batch_idx = np.random.choice(train_x.shape[0], batch_size)
+                batch_xs = train_x[batch_idx]
+                # Run optimization op (backprop) and cost op (to get loss value)
+                _, c = sess.run([optimizer, cost], feed_dict={X: batch_xs})
+                
+            # Display logs per epoch step
+            if epoch % display_step == 0:
+                train_batch_mse = sess.run(batch_mse, feed_dict={X: train_x})
+                print("Epoch:", '%04d' % (epoch+1),
+                      "cost=", "{:.9f}".format(c), 
+                      "Train auc=", "{:.6f}".format(auc(train_y, train_batch_mse)), 
+                      "Time elapsed=", "{}".format(datetime.now() - now))
+
+    print("Optimization Finished!")
         
         
-        
+    '''    
     #####################################
     # read from stdin and predict       #
     #####################################
@@ -272,6 +380,7 @@ def main(_):
     to_pcap_file(infile + '.tmp', infile + '.pcap')
     os.remove(infile + '.tmp')
     print("Generated " + infile + ".pcap")
+    '''
     
 
 
@@ -309,14 +418,6 @@ anomalies with label 1.
 """, formatter_class=argparse.RawTextHelpFormatter)
     parser.register("type", "bool", lambda v: v.lower() == "true")
     parser.add_argument(
-        "-a",
-        "--anomaly_tshark_ek_x_json",
-        type=str,
-        default="",
-        help="Anomaly traffic. Json created by tshark -T ek -x from pcap.\nShall contain only frames considered as anomalies.",
-        required=True
-    )
-    parser.add_argument(
         "-i",
         "--normal_tshark_ek_x_json",
         type=str,
@@ -335,7 +436,7 @@ anomalies with label 1.
     FLAGS, unparsed = parser.parse_known_args()
     
     print "============"
-    print FLAGS.anomaly_tshark_ek_x_json
+    #print FLAGS.anomaly_tshark_ek_x_json
     print FLAGS.normal_tshark_ek_x_json
     print FLAGS.fields
     print "============"

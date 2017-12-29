@@ -1,4 +1,10 @@
-# Anomaly Detection using tensorflow and tshark
+# Unsupervised Anomaly Detection using tensorflow and tshark
+Unsupervised learning by ausing autoencoder neural network by using tensorflow.
+
+See the ad_tf_autoencoder.ipynb 
+
+
+# Supervised Anomaly Detection using tensorflow and tshark
 ```shell-session
 Script to help to detect anomalies in pcap file.
 Using tensorflow neural network classifier and tshark -T ek -x input.
@@ -68,5 +74,5 @@ Program is distributed in the hope that it will be useful, but WITHOUT ANY WARRA
 ## Attribution
 
 This code was created by Martin Kacer, H21 lab, Copyright 2017.
-https://sites.google.com/site/h21lab
+https://www.h21lab.com
 

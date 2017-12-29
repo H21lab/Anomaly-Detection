@@ -1,0 +1,6 @@
+Created from pcaps publicly available on https://pcapr.net
+
+attack-trace.pcap
+
+Created by the following command
+tshark -T ek -x -r attack-trace.pcap > trace.json
