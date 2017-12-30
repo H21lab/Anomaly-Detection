@@ -1,7 +1,7 @@
 # Unsupervised Anomaly Detection using tensorflow and tshark
-Unsupervised learning by ausing autoencoder neural network by using tensorflow.
+Unsupervised learning by using autoencoder neural network by using tensorflow.
 
-See the ad_tf_autoencoder.ipynb 
+See the [ad_tf_autoencoder.ipynb](https://github.com/H21lab/Anomaly-Detection/blob/master/ad_tf_autoencoder.ipynb)
 
 
 # Supervised Anomaly Detection using tensorflow and tshark
