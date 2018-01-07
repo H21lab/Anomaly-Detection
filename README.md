@@ -73,6 +73,6 @@ Program is distributed in the hope that it will be useful, but WITHOUT ANY WARRA
 
 ## Attribution
 
-This code was created by Martin Kacer, H21 lab, Copyright 2017.
+This code was created by Martin Kacer, H21 lab, Copyright 2018.
 https://www.h21lab.com
 
