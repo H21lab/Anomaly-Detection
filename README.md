@@ -67,7 +67,7 @@ dest IP pairs and descending to frames with common
 combinations.
 ```
 
-Limitations
+## Limitations
 
 Program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY.
 
