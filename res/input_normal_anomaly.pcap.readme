@@ -1,0 +1,7 @@
+input.pcap, normal.pcap, anomaly.pcap
+
+Original pcap was "DEF CON 23 ICS Village" 
+Downloaded from https://www.netresec.com/?page=PcapFiles
+https://media.defcon.org/DEF%20CON%2023/DEF%20CON%2023%20villages/DEF%20CON%2023%20ics%20village/DEF%20CON%2023%20ICS%20Village%20packet%20captures.rar
+
+The pcap was after split into 3 pcap files.

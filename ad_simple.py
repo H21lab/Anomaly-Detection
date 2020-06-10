@@ -3,7 +3,7 @@
 # Simple anomaly detection using tshark
 # Input is tshark -T ek -x json and output is pcap
 #
-# Copyright 2017, H21 lab, Martin Kacer
+# Copyright 2020, H21 lab, Martin Kacer
 # All the content and resources have been provided in the hope that it will be useful.
 # Author do not take responsibility for any misapplication of it.
 #
@@ -39,7 +39,7 @@ def hex_to_txt(hexstring, output_file):
     
     for i in range(0, len(h), 2):
         if(i%32 == 0):
-            file.write(format(i/2, '06x') + ' ')
+            file.write(format(int(i/2), '06x') + ' ')
         
         file.write(h[i:i+2] + ' ')
         
@@ -88,7 +88,7 @@ def main(_):
             for f in fj:
                 s = str(f)
                 m = hashlib.md5()
-                m.update(s)
+                m.update(s.encode('utf-8'))
                 k = m.hexdigest()
                 if k in d:
                     d[k] = d[k] + 1

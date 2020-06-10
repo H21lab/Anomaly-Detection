@@ -17,8 +17,9 @@ cat input.pcap.json | python ad_tf.py -i normal.pcap.json \
  -a anomaly.pcap.json -f field_1 field_2 .... field_n
 
 For fields the name of the fields from json ek should be used, e.g.:
-cat input.pcap.json | python ad_tf.py -i normal.pcap.json \
- -a anomaly.pcap.json -f ip_ip_src ip_ip_dst
+tshark -T ek -x -r ./res/input.pcap.gz | python ad_tf.py \
+   -i res/normal.json -a res/anomaly.json -f tcp_tcp_flags_raw \
+   tcp_tcp_dstport_raw
 
 Output pcap
 ad_test.pcap
@@ -73,6 +74,6 @@ Program is distributed in the hope that it will be useful, but WITHOUT ANY WARRA
 
 ## Attribution
 
-This code was created by Martin Kacer, H21 lab, Copyright 2018.
+This code was created by Martin Kacer, H21 lab, Copyright 2020.
 https://www.h21lab.com
 
