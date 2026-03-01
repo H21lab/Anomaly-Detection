@@ -1,3 +1,9 @@
+# 💡 Update
+Online application with anomaly detection capabilities [**logs-analyzer**](https://www.h21lab.com/applications/logs-analyzer) is now available:
+
+Source code you can find in the https://github.com/h21-lab/apps-collection-info repository.
+👉 [Get Access](https://buy.polar.sh/polar_cl_eRpd2b9nzlDyHdA2M8vYvCiUyCjl4gPZeYiHs41btfM)
+
 # Unsupervised Anomaly Detection using tensorflow and tshark
 Unsupervised learning by using autoencoder neural network by using tensorflow.
 
